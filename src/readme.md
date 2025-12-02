@@ -187,21 +187,53 @@ echo '{"element":"O"}' > /dev/ttyUSB0
 
 ## Element Database Configuration
 
-Edit `Elements/json/elements.json` to add/modify elements:
+Edit `Elements/json/PeriodicTableJSON.json` to add/modify elements:
 
 ```json
 {
   "elements": [
     {
-      "symbol": "H",
-      "name": "Hydrogen",
-      "atomicNumber": 1,
-      "atomicMass": "1.008",
-      "category": "Nonmetal",
-      "phase": "Gas",
-      "discoveredBy": "Henry Cavendish (1766)",
-      "model3D": "https://example.com/models/hydrogen.glb",
-      "image2D": "https://example.com/images/hydrogen.jpg"
+            "name": "Hydrogen",
+            "appearance": "colorless gas",
+            "atomic_mass": 1.008,
+            "boil": 20.271,
+            "category": "diatomic nonmetal",
+            "density": 0.08988,
+            "discovered_by": "Henry Cavendish",
+            "melt": 13.99,
+            "molar_heat": 28.836,
+            "named_by": "Antoine Lavoisier",
+            "number": 1,
+            "period": 1,
+            "group": 1,
+            "phase": "Gas",
+            "source": "https://en.wikipedia.org/wiki/Hydrogen",
+            "bohr_model_image": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_001_hydrogen/element_001_hydrogen_srp_th.png",
+            "bohr_model_3d": "https://storage.googleapis.com/search-ar-edu/periodic-table/element_001_hydrogen/element_001_hydrogen.glb",
+            "spectral_img": "https://en.wikipedia.org/wiki/File:Hydrogen_Spectra.jpg",
+            "summary": "Hydrogen is a chemical element with chemical symbol H and atomic number 1. With an atomic weight of 1.00794 u, hydrogen is the lightest element on the periodic table. Its monatomic form (H) is the most abundant chemical substance in the Universe, constituting roughly 75% of all baryonic mass.",
+            "symbol": "H",
+            "xpos": 1,
+            "ypos": 1,
+            "wxpos": 1,
+            "wypos": 1,
+            "shells": [
+                1
+            ],
+            "electron_configuration": "1s1",
+            "electron_configuration_semantic": "1s1",
+            "electron_affinity": 72.769,
+            "electronegativity_pauling": 2.2,
+            "ionization_energies": [
+                1312
+            ],
+            "cpk-hex": "ffffff",
+            "image": {
+                "title": "Vial of glowing ultrapure hydrogen, H2. Original size in cm: 1 x 5",
+                "url": "https://upload.wikimedia.org/wikipedia/commons/d/d9/Hydrogenglow.jpg",
+                "attribution": "User:Jurii, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons, source: https://images-of-elements.com/hydrogen.php"
+            },
+            "block": "s"
     }
   ]
 }
@@ -210,7 +242,7 @@ Edit `Elements/json/elements.json` to add/modify elements:
 ### Adding 3D Models
 
 1. Place `.glb` files in a web-accessible location
-2. Update the `model3D` URL in `elements.json`
+2. Update the `model3D` URL in `PeriodicTableJSON.json`
 3. The viewer supports:
    - Rotation (left-click + drag)
    - Panning (right-click + drag)
@@ -224,7 +256,7 @@ Edit `Elements/json/elements.json` to add/modify elements:
 {
   "serial_port": "COM3",           // Serial port device
   "baudrate": 9600,                 // Serial baud rate
-  "elements_json_path": "Elements/json/elements.json",
+  "elements_json_path": "Elements/json/PeriodicTableJSON.json",
   "web_port": 5000,                 // Web server port
   "auto_start_serial": false        // Auto-connect on startup
 }
