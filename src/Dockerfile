@@ -1,39 +1,34 @@
-# syntax=docker/dockerfile:1
-# Multi-stage Dockerfile for a Node.js application.
-# - Build stage installs deps, builds, then prunes devDependencies.
-# - Final stage runs the production artifact as a non-root user.
-# Adjust NODE_VERSION, EXPOSE and CMD to match your app.
+FROM python:3.11-slim
 
-ARG NODE_VERSION=18-alpine
-FROM node:${NODE_VERSION} AS builder
+# Set working directory
 WORKDIR /app
 
-# Install dependencies (clean install for reproducibility)
-COPY package*.json ./
-RUN npm ci --silent
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    make \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy source and build (if your project has a build step)
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application files
 COPY . .
-RUN npm run build --if-present
 
-# Remove devDependencies to keep artifacts lean
-RUN npm prune --production --silent
+# Create necessary directories
+RUN mkdir -p Elements/json templates
 
-FROM node:${NODE_VERSION} AS runner
-WORKDIR /app
-ENV NODE_ENV=production
+# Expose port
+EXPOSE 5000
 
-# Create non-root user
-RUN addgroup -S app && adduser -S app -G app
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
 
-# Copy only what's needed for production
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/public ./public
-
-USER app
-EXPOSE 3000
-
-# Default command: prefer npm start (adjust as needed).
-CMD ["npm", "start"]
+# Run the application
+CMD ["python", "app.py"]

@@ -1,0 +1,7 @@
+{
+  "serial_port": "COM3",
+  "baudrate": 9600,
+  "elements_json_path": "Elements/json/PeriodicTableJSON.json",
+  "web_port": 5000,
+  "auto_start_serial": false
+}

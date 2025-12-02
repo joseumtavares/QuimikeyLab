@@ -1,0 +1,12 @@
+# Web Framework
+flask==3.0.0
+Werkzeug==3.0.1
+
+# Serial Communication
+pyserial==3.5
+
+# HTTP Requests
+requests==2.31.0
+
+# CORS support (optional, if needed)
+flask-cors==4.0.0

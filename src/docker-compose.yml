@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  periodic-viewer:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: periodic-table-viewer
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount application files
+      - ./Elements:/app/Elements
+      - ./config.json:/app/config.json
+      - ./templates:/app/templates
+      - ./static:/app/static
+    
+    # Serial port device mapping (uncomment and configure for your system)
+    devices:
+      # === LINUX ===
+      # USB Serial (most common):
+      # - /dev/ttyUSB0:/dev/ttyUSB0
+      # - /dev/ttyUSB1:/dev/ttyUSB1
+      # Arduino/ACM devices:
+      # - /dev/ttyACM0:/dev/ttyACM0
+      # - /dev/ttyACM1:/dev/ttyACM1
+      
+      # === macOS ===
+      #USB Serial:
+      - /dev/cu.usbserial:/dev/cu.usbserial
+      - /dev/cu.usbmodem:/dev/cu.usbmodem
+     # Specific device (check with: ls /dev/cu.*):
+      - /dev/cu.usbserial-1420:/dev/cu.usbserial-1420
+      
+      # === WINDOWS (WSL2) ===
+      # Windows requires USB/IP passthrough or direct COM port access
+      # See: https://docs.microsoft.com/en-us/windows/wsl/connect-usb
+      # Example after passthrough:
+      # - /dev/ttyS3:/dev/ttyS3
+    
+    # Add user to dialout group for serial access (Linux)
+    # group_add:
+    #   - dialout
+    
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+      # Override config.json settings (optional)
+      # - SERIAL_PORT=/dev/ttyUSB0
+      # - BAUDRATE=9600
+      # - WEB_PORT=5000
+    
+    restart: unless-stopped
+    
+    # Privileged mode (only if needed for serial access issues)
+    # privileged: true
+    
+    networks:
+      - periodic-network
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  periodic-network:
+    driver: bridge

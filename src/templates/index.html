@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Periodic Table Element Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .status-bar {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.connected {
+            background: #28a745;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .serial-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        .viewer-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 500px;
+        }
+        
+        #canvas-container {
+            width: 100%;
+            height: 500px;
+            background: #000;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #canvas-container canvas {
+            display: block;
+        }
+        
+        #image-container {
+            width: 100%;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 10px;
+        }
+        
+        #image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .element-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+        
+        .element-symbol {
+            font-size: 4em;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .element-name {
+            font-size: 1.8em;
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .element-property {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .element-property:last-child {
+            border-bottom: none;
+        }
+        
+        .property-label {
+            font-weight: bold;
+            color: #666;
+        }
+        
+        .property-value {
+            color: #333;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+            font-size: 1.2em;
+        }
+        
+        .no-element {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+        }
+        
+        .controls-info {
+            background: #e7f3ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #0066cc;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚛️ Periodic Table Element Viewer</h1>
+            <p>3D Element Visualization System</p>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="status-text">Serial Port: Disconnected</span>
+            </div>
+            <div class="serial-controls">
+                <select id="port-select" class="btn" style="padding: 8px 15px;">
+                    <option value="">Select Port</option>
+                </select>
+                <button class="btn btn-primary" onclick="connectSerial()">Connect</button>
+                <button class="btn btn-danger" onclick="disconnectSerial()">Disconnect</button>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="viewer-section">
+                <div id="canvas-container" style="display: none;">
+                    <!-- Three.js canvas will be inserted here -->
+                </div>
+                <div id="image-container" style="display: none;">
+                    <img id="element-image" src="" alt="Element">
+                </div>
+                <div id="no-element" class="no-element">
+                    <h2>Waiting for Element Data...</h2>
+                    <p>Send element instruction via serial port</p>
+                    <p style="margin-top: 20px; font-size: 0.9em;">Example JSON: {"element": "H"}</p>
+                </div>
+                <div class="controls-info" id="controls-info" style="display: none;">
+                    <strong>3D Controls:</strong><br>
+                    • Left click + drag: Rotate<br>
+                    • Right click + drag: Pan<br>
+                    • Scroll: Zoom
+                </div>
+            </div>
+            
+            <div class="info-section">
+                <div class="element-card" id="element-info" style="display: none;">
+                    <div class="element-symbol" id="element-symbol">-</div>
+                    <div class="element-name" id="element-name">-</div>
+                    <div id="element-properties"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let scene, camera, renderer, controls, currentModel;
+        let pollInterval;
+        
+        // Initialize Three.js
+        function initThreeJS() {
+            const container = document.getElementById('canvas-container');
+            
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a1a);
+            
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 5;
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+            
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+            directionalLight2.position.set(-5, -5, -5);
+            scene.add(directionalLight2);
+            
+            animate();
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        // Load 3D model
+        function load3DModel(url) {
+            const loader = new THREE.GLTFLoader();
+            
+            // Remove existing model
+            if (currentModel) {
+                scene.remove(currentModel);
+            }
+            
+            loader.load(
+                url,
+                (gltf) => {
+                    currentModel = gltf.scene;
+                    scene.add(currentModel);
+                    
+                    // Center and scale model
+                    const box = new THREE.Box3().setFromObject(currentModel);
+                    const center = box.getCenter(new THREE.Vector3());
+                    currentModel.position.sub(center);
+                    
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 3 / maxDim;
+                    currentModel.scale.multiplyScalar(scale);
+                },
+                undefined,
+                (error) => {
+                    console.error('Error loading 3D model:', error);
+                    showImage(null);
+                }
+            );
+        }
+        
+        // Display element
+        function displayElement(element) {
+            document.getElementById('no-element').style.display = 'none';
+            document.getElementById('element-info').style.display = 'block';
+            
+            // Update element info
+            document.getElementById('element-symbol').textContent = element.symbol || '-';
+            document.getElementById('element-name').textContent = element.name || '-';
+            
+            // Build properties list
+            const properties = [
+                { label: 'Atomic Number', value: element.atomicNumber || '-' },
+                { label: 'Atomic Mass', value: element.atomicMass || '-' },
+                { label: 'Category', value: element.category || '-' },
+                { label: 'Phase', value: element.phase || '-' },
+                { label: 'Discovered', value: element.discoveredBy || '-' }
+            ];
+            
+            const propertiesHTML = properties.map(prop => `
+                <div class="element-property">
+                    <span class="property-label">${prop.label}:</span>
+                    <span class="property-value">${prop.value}</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('element-properties').innerHTML = propertiesHTML;
+            
+            // Display 3D or 2D
+            if (element.model3D) {
+                show3DModel(element.model3D);
+            } else if (element.image2D) {
+                showImage(element.image2D);
+            } else {
+                showImage(null);
+            }
+        }
+        
+        function show3DModel(url) {
+            document.getElementById('canvas-container').style.display = 'block';
+            document.getElementById('image-container').style.display = 'none';
+            document.getElementById('controls-info').style.display = 'block';
+            load3DModel(url);
+        }
+        
+        function showImage(url) {
+            document.getElementById('canvas-container').style.display = 'none';
+            document.getElementById('image-container').style.display = 'flex';
+            document.getElementById('controls-info').style.display = 'none';
+            
+            if (url) {
+                document.getElementById('element-image').src = url;
+            } else {
+                document.getElementById('element-image').src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><text x="50%" y="50%" text-anchor="middle" dy=".3em" font-size="20" fill="%23999">No visualization available</text></svg>';
+            }
+        }
+        
+        // Poll for current element
+        function pollCurrentElement() {
+            fetch('/api/current_element')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && !data.error) {
+                        displayElement(data);
+                    }
+                })
+                .catch(error => console.error('Error polling element:', error));
+        }
+        
+        // Serial port functions
+        function loadSerialPorts() {
+            fetch('/api/serial/ports')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('port-select');
+                    select.innerHTML = '<option value="">Select Port</option>';
+                    data.ports.forEach(port => {
+                        const option = document.createElement('option');
+                        option.value = port;
+                        option.textContent = port;
+                        select.appendChild(option);
+                    });
+                });
+        }
+        
+        function connectSerial() {
+            const port = document.getElementById('port-select').value;
+            if (!port) {
+                alert('Please select a serial port');
+                return;
+            }
+            
+            fetch('/api/serial/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ port: port })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('status-dot').classList.add('connected');
+                    document.getElementById('status-text').textContent = `Serial Port: Connected (${port})`;
+                    startPolling();
+                } else {
+                    alert('Failed to connect to serial port');
+                }
+            });
+        }
+        
+        function disconnectSerial() {
+            fetch('/api/serial/stop', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('status-dot').classList.remove('connected');
+                document.getElementById('status-text').textContent = 'Serial Port: Disconnected';
+                stopPolling();
+            });
+        }
+        
+        function startPolling() {
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = setInterval(pollCurrentElement, 500);
+        }
+        
+        function stopPolling() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+        }
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            initThreeJS();
+            loadSerialPorts();
+            startPolling();
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    </script>
+</body>
+</html>
