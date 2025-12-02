@@ -27,10 +27,10 @@ services:
       
       # === macOS ===
       #USB Serial:
-      - /dev/cu.usbserial:/dev/cu.usbserial
-      - /dev/cu.usbmodem:/dev/cu.usbmodem
+      #- cu.Bluetooth-Incoming-Port
+      #- /dev/cu.usbmodem:/dev/cu.usbmodem
      # Specific device (check with: ls /dev/cu.*):
-      - /dev/cu.usbserial-1420:/dev/cu.usbserial-1420
+      #- /dev/cu.usbserial-1420:/dev/cu.usbserial-1420
       
       # === WINDOWS (WSL2) ===
       # Windows requires USB/IP passthrough or direct COM port access
@@ -60,7 +60,7 @@ services:
     
     # Health check
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      test: ["CMD", "curl", "-f", "http://localhost:5001"]
       interval: 30s
       timeout: 10s
       retries: 3

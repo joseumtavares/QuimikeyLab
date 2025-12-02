@@ -1,5 +1,5 @@
 {
-  "serial_port": "/dev/cu.usbserial",
+  "serial_port": "cu.Bluetooth-Incoming-Port",
   "baudrate": 9600,
   "elements_json_path": "Elements/json/PeriodicTableJSON.json",
   "web_port": 5000,
