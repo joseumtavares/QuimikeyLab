@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: periodic-table-viewer
     ports:
-      - "5000:5000"
+      - "5001:5001"
     volumes:
       # Mount application files
       - ./Elements:/app/Elements
@@ -39,8 +39,8 @@ services:
       # - /dev/ttyS3:/dev/ttyS3
     
     # Add user to dialout group for serial access (Linux)
-    # group_add:
-    #   - dialout
+    group_add:
+      - dialout
     
     environment:
       - FLASK_ENV=production

@@ -1,5 +1,5 @@
 {
-  "serial_port": "COM3",
+  "serial_port": "/dev/cu.usbserial",
   "baudrate": 9600,
   "elements_json_path": "Elements/json/PeriodicTableJSON.json",
   "web_port": 5000,
