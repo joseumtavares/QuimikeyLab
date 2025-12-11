@@ -282,6 +282,8 @@
     <script>
         let scene, camera, renderer, controls, currentModel;
         let pollInterval;
+        let eventSource;
+        let useSSE = true; // Flag to control SSE usage
         
         // Initialize Three.js
         function initThreeJS() {
@@ -411,6 +413,48 @@
             }
         }
         
+        // Server-Sent Events functions
+        function setupSSE() {
+            if (!useSSE) return;
+
+            try {
+                eventSource = new EventSource('/api/stream');
+
+                eventSource.onmessage = function(e) {
+                    try {
+                        const data = JSON.parse(e.data);
+                        if (data && !data.error) {
+                            displayElement(data);
+                        }
+                    } catch (error) {
+                        console.error('Error parsing SSE data:', error);
+                    }
+                };
+
+                eventSource.onerror = function() {
+                    console.error('SSE connection error, falling back to polling');
+                    useSSE = false;
+                    if (eventSource) {
+                        eventSource.close();
+                    }
+                    startPolling(); // Fall back to polling
+                };
+
+                console.log('SSE connection established');
+            } catch (error) {
+                console.error('SSE not supported, falling back to polling:', error);
+                useSSE = false;
+                startPolling();
+            }
+        }
+
+        function closeSSE() {
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+        }
+
         // Poll for current element
         function pollCurrentElement() {
             fetch('/api/current_element')
@@ -456,7 +500,7 @@
                 if (data.success) {
                     document.getElementById('status-dot').classList.add('connected');
                     document.getElementById('status-text').textContent = `Serial Port: Connected (${port})`;
-                    startPolling();
+                    startMonitoring();
                 } else {
                     alert('Failed to connect to serial port');
                 }
@@ -472,7 +516,7 @@
             .then(data => {
                 document.getElementById('status-dot').classList.remove('connected');
                 document.getElementById('status-text').textContent = 'Serial Port: Disconnected';
-                stopPolling();
+                stopMonitoring();
             });
         }
         
@@ -487,12 +531,25 @@
                 pollInterval = null;
             }
         }
+
+        function startMonitoring() {
+            if (useSSE) {
+                setupSSE();
+            } else {
+                startPolling();
+            }
+        }
+
+        function stopMonitoring() {
+            closeSSE();
+            stopPolling();
+        }
         
         // Initialize
         window.addEventListener('load', () => {
             initThreeJS();
             loadSerialPorts();
-            startPolling();
+            startMonitoring();
         });
         
         // Handle window resize

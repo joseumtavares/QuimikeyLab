@@ -15,7 +15,7 @@ from typing import Optional, Dict, Any
 
 import serial
 import serial.tools.list_ports
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, Response
 import requests
 
 
@@ -167,6 +167,21 @@ class ElementViewerApp:
             if self.current_element:
                 return jsonify(self.current_element)
             return jsonify({"error": "No element loaded"}), 404
+
+        @app.route('/api/stream')
+        def stream():
+            """Server-Sent Events endpoint for real-time element updates"""
+            def event_stream():
+                last_element = None
+                while True:
+                    if self.current_element and self.current_element != last_element:
+                        try:
+                            yield f"data: {json.dumps(self.current_element)}\n\n"
+                            last_element = self.current_element
+                        except Exception as e:
+                            print(f"Error in SSE stream: {e}")
+                    time.sleep(0.1)  # Check every 100ms
+            return Response(event_stream(), mimetype='text/event-stream')
         
         @app.route('/api/element/<symbol>')
         def get_element(symbol):
