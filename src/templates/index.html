@@ -344,7 +344,7 @@
                     
                     const size = box.getSize(new THREE.Vector3());
                     const maxDim = Math.max(size.x, size.y, size.z);
-                    const scale = 3 / maxDim;
+                    const scale = 2 / maxDim; // o original é 3 / maxDim... estou colocando 2 / maxDim pra ver se o elemento aparece melhor
                     currentModel.scale.multiplyScalar(scale);
                 },
                 undefined,
