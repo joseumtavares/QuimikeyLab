@@ -37,9 +37,9 @@ class ElementDatabase:
         except json.JSONDecodeError as e:
             print(f"Error parsing JSON: {e}")
             return {}
-    
+
     def get_element(self, symbol: str) -> Optional[Dict[str, Any]]:
-        """Get element by symbol (e.g., 'H', 'He', 'Li')"""
+        """Função usada para retornar o elemento pelo símbolo (ex:, 'H', 'He', 'Li')"""
         symbol_upper = symbol.upper()
         for element in self.elements.get('elements', []):
             if element.get('symbol', '').upper() == symbol_upper:
