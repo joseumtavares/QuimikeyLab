@@ -205,8 +205,9 @@ class ElementViewerApp:
         """Handle instruction received from serial port"""
         print(f"Received instruction: {instruction}")
         
-        # Extract element from instruction
-        element_symbol = instruction.get('element')
+        # Tentar buscar o elemento de diferentes formas (campo 'element' ou 'symbol')
+        element_symbol = instruction.get('element') or instruction.get('symbol')
+        
         if not element_symbol:
             print("No element specified in instruction")
             return

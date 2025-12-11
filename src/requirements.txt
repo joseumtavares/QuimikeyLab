@@ -1,5 +1,5 @@
 # Web Framework
-flask==3.0.0
+flask==3.1.2
 Werkzeug==3.0.1
 
 # Serial Communication

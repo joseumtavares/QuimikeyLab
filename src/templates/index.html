@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Periodic Table Element Viewer</title>
+    <title>Quimikey Lab</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -37,9 +37,11 @@
             text-align: center;
         }
         
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+        /* CSS para exibição da imagem no cabeçalho */
+        .header img {
+            max-width: 100%; /* A imagem ocupa toda a largura disponível no cabeçalho */
+            height: auto; /* A altura é ajustada proporcionalmente */
+            object-fit: contain; /* Garante que a imagem não seja distorcida */
         }
         
         .status-bar {
@@ -228,8 +230,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>⚛️ Periodic Table Element Viewer</h1>
-            <p>3D Element Visualization System</p>
+            <!-- Aqui está a substituição do título por uma imagem -->
+            <img src="../source/logo.png" height="150px" weight="auto" alt="⚛️ Quimikey Lab Visualizador de Elementos">
         </div>
         
         <div class="status-bar">
@@ -364,11 +366,11 @@
             
             // Build properties list
             const properties = [
-                { label: 'Atomic Number', value: element.atomicNumber || '-' },
-                { label: 'Atomic Mass', value: element.atomicMass || '-' },
+                { label: 'Atomic Number', value: element.number || '-' },
+                { label: 'Atomic Mass', value: element.atomic_mass || '-' },
                 { label: 'Category', value: element.category || '-' },
                 { label: 'Phase', value: element.phase || '-' },
-                { label: 'Discovered', value: element.discoveredBy || '-' }
+                { label: 'Discovered By', value: element.discovered_by || '-' }
             ];
             
             const propertiesHTML = properties.map(prop => `
@@ -381,12 +383,12 @@
             document.getElementById('element-properties').innerHTML = propertiesHTML;
             
             // Display 3D or 2D
-            if (element.model3D) {
-                show3DModel(element.model3D);
-            } else if (element.image2D) {
-                showImage(element.image2D);
+            if (element.bohr_model_3d) {
+                show3DModel(element.bohr_model_3d);
+            } else if (element.image && element.image.url) {
+                showImage(element.image.url);
             } else {
-                showImage(null);
+                showImage(null); // Exibe mensagem caso não haja modelo nem imagem
             }
         }
         
